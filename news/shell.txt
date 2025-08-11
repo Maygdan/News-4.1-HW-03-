@@ -1,0 +1,89 @@
+Я не знаю, как работает папка git_ignore (пока не разбирался)
+Команды:
+
+Блок 1
+u1=User.objects.create(username='Tim') 
+u2=User.objects.create(username='Nick')
+u3=User.objects.create(username='Sam')
+
+Блок 2
+author1=Author.objects.create(one_to_one_User=u1)
+author2=Author.objects.create(one_to_one_User=u2)
+author3=Author.objects.create(one_to_one_User=u3)
+
+Блок 3
+a1=Author.objects.get(id=1)            
+a2=Author.objects.get(id=2)
+a3=Author.objects.get(id=3)
+
+Блок 4
+Post.objects.create(author=a1,title='somePTtitle',text='sometext')     
+Post.objects.create(author=a2,title='somePTtitle',text='sometext')
+Post.objects.create(author=a3,choose='ns',title='someNStitle',text='sometext') 
+
+Блок 5
+Category.objects.create(name='Fun')                               
+Category.objects.create(name='Sad')
+Category.objects.create(name='Horror')
+Category.objects.create(name='IT')
+
+Блок 6
+b1=Post.objects.get(id=1)
+b2=Post.objects.get(id=2)
+
+Блок 7
+Comment.objects.create(text='anytext',one_to_many_User=a1.one_to_one_User,one_to_many_Post=b1)
+Comment.objects.create(text='anytext',one_to_many_User=a2.one_to_one_User,one_to_many_Post=b2)
+Comment.objects.create(text='anytext1',one_to_many_User=a3.one_to_one_User,one_to_many_Post=b2)
+Comment.objects.create(text='anytext2',one_to_many_User=a3.one_to_one_User,one_to_many_Post=b1)
+
+Блок 8
+c1=Comment.objects.get(id=1)
+c2=Comment.objects.get(id=2)
+Comment.objects.get(id=1).like()
+Comment.objects.get(id=1).like()
+Comment.objects.get(id=2).dislike()
+Post.objects.get(id=1).like()      
+Post.objects.get(id=2).like()
+
+Блок 9
+Comment.objects.get(id=1).rating_comment
+Comment.objects.get(id=2).rating_comment
+Post.objects.get(id=2).rating_post   
+Post.objects.get(id=1).rating_post
+
+Блок 10
+a1.update_rating()
+a2.update_rating()
+a1.rating_user
+a2.rating_user
+a3.rating_user
+
+Блок 11
+u_all=Author.objects.order_by('-rating_user')[:1]
+for i in u_all:  
+     i.rating_user
+     i.one_to_one_User.username
+
+Блок 12
+p_all=Post.objects.order_by('-rating_post')[:1]
+for j in p_all:
+    j.data_time
+    j.author.one_to_one_User.username
+    j.author.rating_user
+    j.title
+    j.preview()
+
+Блок 13
+obj_all=Comment.objects.all()
+for i in obj_all:
+     i.date_time
+     i.text            
+     i.rating_comment
+     i.username
+
+Насчёт кода в news.models.py да, он не соответствует PEP8 к тому же названия атрбутов желают лучшего (one_to_one_User)
+-например. К тому же в классе Post у меня закаментировано обращение один_ко_многим с User, что я заметил когда пропи-
+сал уже почти все Команды, это конечно пока не мешает. (если я могу обратиться за username к классу Author и 
+получить его оттуда.) Если это критично, напишите пожалуйста об этом, я переделаю с 0. (это хотя бы будет быстрееБ
+,чем прежде.), спасибо за внимание, хорошего дня! 

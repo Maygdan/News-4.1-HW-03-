@@ -1,0 +1,16 @@
+{% extends 'flatpages/default.html' %}
+{% load custom_tags %}
+
+
+{% block title %}
+<h1>Post</h1>
+{% endblock title %}
+
+{% block content %}
+
+<h1>{{post.title}}</h1>
+<p>{{post.text}}</p>
+<h3>{{post.data_time|date:'d M Y'}}</h3>
+
+
+{% endblock content %}
