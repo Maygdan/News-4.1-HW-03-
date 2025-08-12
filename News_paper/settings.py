@@ -38,6 +38,7 @@ AUTHENTICATION_BACKENDS = [
 # Application definition
 
 INSTALLED_APPS = [
+    'modeltranslation',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -58,22 +59,32 @@ INSTALLED_APPS = [
 
 ]
 
+LOCALE_PATHS = [
+    os.path.join(BASE_DIR, 'locale')
+]
+
 SITE_ID=1
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+'django.middleware.security.SecurityMiddleware',
+'django.contrib.sessions.middleware.SessionMiddleware',
 
-    "allauth.account.middleware.AccountMiddleware",
-    # 'django.contrib.flatpages.middleware.FlatpageFallbackMiddleware' 
+'django.middleware.locale.LocaleMiddleware',
+
+'django.middleware.common.CommonMiddleware',
+'django.middleware.csrf.CsrfViewMiddleware',
+'django.contrib.auth.middleware.AuthenticationMiddleware',
+'django.contrib.messages.middleware.MessageMiddleware',
+'django.middleware.clickjacking.XFrameOptionsMiddleware',
+'allauth.account.middleware.AccountMiddleware',
+'news.middlewares.TimezoneMiddleware', # add that middleware!
 ]
 
 ROOT_URLCONF = 'News_paper.urls'
+
+LANGUAGE_CODE = 'ru'
+LANGUAGES=(('ru','Русский')
+           ,('en-es','English'))
 
 LOGIN_URL = '/accounts/login/'
 
@@ -160,7 +171,7 @@ ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+USE_I18N = True
 
 EMAIL_HOST = 'smtp.yandex.ru'
 EMAIL_PORT = 465
@@ -190,82 +201,134 @@ ADMINS = (
 
 
 
-class RequireDebugFalse(logging.Filter):
-    def filter(self, record):
-        return not getattr(record, 'debug', True)
+# class RequireDebugFalse(logging.Filter):
+#     def filter(self, record):
+#         return not getattr(record, 'debug', True)
 
-class RequireDebugTrue(logging.Filter):
-    def filter(self, record):
-        return getattr(record, 'debug', False)
-
-# Форматтеры
-format_general = '[{asctime}] {levelname} {module} {message}'
-format_error = '[{asctime}] {levelname} {message} {pathname} {exc_text}'
-format_security = '[{asctime}] {levelname} {module} {message}'
-format_email = '[{asctime}] {levelname} {message}'
+# class RequireDebugTrue(logging.Filter):
+#     def filter(self, record):
+#         return getattr(record, 'debug', False)
 
 # Конфигурация логгирования
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
-    'filters': {
-        'require_debug_false': {
-            '()': RequireDebugFalse,
-        },
-        'require_debug_true': {
-            '()': RequireDebugTrue,
-        },
-    },
+    'style': '{',
+
+    # форматер - формат записи сообщений
     'formatters': {
-        'general': {
-            'format': format_general,
-            'style': '{',
+        'simple': {
+            'format': '%(asctime)s %(levelname)s %(message)s',
+            'datefmt': '%d.%m.%Y %H-%M-%S',
         },
-        'error': {
-            '()': 'logging.Formatter',
-            'format': format_error,
-            'style': '{',
+        'warning': {
+            'format': '%(asctime)s %(levelname)s %(message)s %(pathname)s',
+            'datefmt': '%d.%m.%Y %H-%M-%S',
         },
-        'security': {
-            'format': format_security,
-            'style': '{',
+        'error_and_critical': {
+            'format': '%(asctime)s %(levelname)s %(message)s %(pathname)s %(exc_info)s',
+            'datefmt': '%d.%m.%Y %H-%M-%S',
+
         },
-        'email': {
-            'format': format_email,
-            'style': '{',
+        'general_': {
+            'format': '%(asctime)s %(levelname)s %(module)s %(message)s',
+            'datefmt': '%d.%m.%Y %H-%M-%S',
+        },
+        'errors_': {
+            'format': '%(asctime)s %(levelname)s %(message)s %(pathname)s %(exc_info)s',
+            'datefmt': '%d.%m.%Y %H-%M-%S',
+        },
+        'email_': {
+            'format': '%(asctime)s %(levelname)s %(message)s %(pathname)s',
+            'datefmt': '%d.%m.%Y %H-%M-%S',
         },
     },
+
+    'filters': {
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
+        },
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse',
+        },
+    },
+
     'handlers': {
-        'general_file': {
-            'class': 'logging.FileHandler',
-            'filename': 'general.log',
-            'formatter': 'general',
-            'filters': ['require_debug_false'],
+        'console_debug': {
+            'level': 'DEBUG',
+            'filters': ['require_debug_true'],
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
         },
-        'errors_file': {
-            'class': 'logging.FileHandler',
-            'filename': 'errors.log',
-            'formatter': 'error',
+        'console_warning': {
+            'level': 'WARNING',
+            'filters': ['require_debug_true'],
+            'class': 'logging.StreamHandler',
+            'formatter': 'warning',
+        },
+        'console_error': {
             'level': 'ERROR',
-            'filters': ['require_debug_false'],
+            'filters': ['require_debug_true'],
+            'class': 'logging.StreamHandler',
+            'formatter': 'error_and_critical',
         },
-        'security_file': {
-            'class': 'logging.FileHandler',
-            'filename': 'security.log',
-            'formatter': 'security',
+        'general_log': {
             'level': 'INFO',
             'filters': ['require_debug_false'],
+            'class': 'logging.FileHandler',
+            'filename': 'logs/general.log',
+            'formatter': 'general_',
         },
-        'mail_admins': {
-    'class': 'logging.handlers.SMTPHandler',
-    'level': 'ERROR',
-    'formatter': 'email',
-    'mailhost': ('smtp.example.com', 587),
-    'fromaddr': 'error-reports@example.com',
-    'toaddrs': ['admin@example.com'],
-    'subject': 'Error Report',
-    'credentials': ('user', 'password'),
-    'secure': ()
-                    }
-              }
-        }
+        'errors_log': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': 'logs/errors.log',
+            'formatter': 'errors_',
+        },
+        'security_log': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': 'logs/security.log',
+            'formatter': 'general_',
+        },
+        'email': {
+            'level': 'ERROR',
+            'filters': ['require_debug_false'],
+            'class': 'django.utils.log.AdminEmailHandler',
+            'formatter': 'email_',
+        },
+    },
+    # регистраторы
+    'loggers': {
+        'django': {
+            'level': 'DEBUG',  # добавляем, чтобы попадало с уровня DEBUG (по умолчанию уровень - INFO)
+            'handlers': ['console_debug', 'console_warning', 'console_error', 'general_log'],
+            'propagate': True,
+        },
+        'django.request': {
+            'level': 'ERROR',
+            'handlers': ['errors_log', 'email'],
+            'propagate': True,
+        },
+        'django.server': {
+            'level': 'ERROR',
+            'handlers': ['errors_log', 'email'],
+            'propagate': True,
+        },
+        'django.template': {
+            'level': 'ERROR',
+            'handlers': ['errors_log'],
+            'propagate': True,
+        },
+        'django.db.backends': {
+            'level': 'ERROR',
+            'handlers': ['errors_log'],
+            'propagate': True,
+        },
+        'django.security': {
+            'level': 'INFO',      # по умолчанию Warning
+            'handlers': ['security_log'],
+            'propagate': True,
+        },
+    },
+}

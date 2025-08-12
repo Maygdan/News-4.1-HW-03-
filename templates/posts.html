@@ -29,7 +29,7 @@ Posts
 
 {% for posts in posts %}
 <tr>
-    <td>{{ posts.author.AuUser }}</td>
+    <td>{{ posts.author.name }}</td>
     <td>{{ posts.title }}</td>
     <td>{{ posts.text|truncatechars:20 }}</td>
     <td>{{ posts.data_time|date:'d M Y'}}</td>

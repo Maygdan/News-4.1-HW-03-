@@ -1,6 +1,9 @@
+from django.http import HttpResponse
+from django.views import View
 from django.views.generic import (ListView, DetailView,
 CreateView,UpdateView,DeleteView)
 from django.contrib.auth.mixins import PermissionRequiredMixin
+import pytz
 from .forms import PostForm
 from .models import Post,Subscription,Category
 from datetime import datetime as dt
@@ -12,8 +15,12 @@ from django.shortcuts import render,redirect
 from django.views.decorators.csrf import csrf_protect
 from News_paper.settings import DEFAULT_FROM_EMAIL
 from django.conf import settings
-
+from django.utils.translation import gettext as _
+from django.utils import timezone
+# from django.utils.translation import activate, get_supported_language_variant, LANGUAGE_SESSION_KEY
 DEFAULT_FROM_EMAIL=settings.DEFAULT_FROM_EMAIL
+
+
 
 
 @login_required
@@ -45,6 +52,31 @@ def subscriptions(request):
         'subscriptions.html',
         {'categories': categories_with_subscriptions},
     )
+
+ # импортируем функцию для перевода
+ 
+# Create your views here.
+class Index(View):
+    def get(self, request):
+        
+        curent_time = timezone.now()
+ 
+        #.  Translators: This message appears on the home page only
+        models = Post.objects.all()
+ 
+        context = {
+            'models': models,
+            'current_time': timezone.now(),
+            'timezones': pytz.common_timezones #  добавляем в контекст все доступные часовые пояса
+        }
+        
+        return HttpResponse(render(request, 'post.html', context))
+ 
+    #  по пост-запросу будем добавлять в сессию часовой пояс, который и будет обрабатываться написанным нами ранее middleware
+    def post(self, request):
+        request.session['django_timezone'] = request.POST['timezone']
+        return redirect('/')
+
 
 class PostCategory(ListView):
     model=Post
